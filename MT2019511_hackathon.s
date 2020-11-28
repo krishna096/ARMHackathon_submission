@@ -1,31 +1,32 @@
-     AREA    spiral, CODE, READONLY
+AREA    spiral, CODE, READONLY
 	 IMPORT printMsg             
 	 export __main	
 	 ENTRY 
 __main  function	
-	    MOV R4, #2 ; for selecting spirals for R4=2 it makes spiral 1 and for r4=1 spiral 2(smaller radius)
+	    MOV R4, #3 ; for selecting spirals for R4=2 it makes spiral 1 and for r4=1 spiral 2(smaller radius)
+		;mov r11, #0;
 		
 		
 		
-		
-start   VLDR.F32 S24,=0 ;angle starting value
-		VLDR.F32 S16,=1080; for spiral of 3 circles 
-	 	VLDR.F32 S15,=30; incrementing theta by 30 degree 	
-		
+start   mov r11, #0
+		VLDR.F32 S24,=0 ;angle starting value
+		VLDR.F32 S16,=360; for spiral of 3 circles 
+	 	VLDR.F32 S15,=10; incrementing theta by 30 degree 	            ;;;;;;;;;;;;;;debugginh 30 to 540 ;;;;;;;;;;
+		sub r4, r4 ,#1 ;;;;;;;;;;;;;;debugggig;;;;;;;;;;;;;
 		CMP R4, #0 
 		beq stop
 		
 		CMP R4, #2 
 		beq stl1
 		
-stl2  		MOV R8, #2 ; radius	
-			MOV R5, #200;MOV R0, #100 ; x 
-			MOV R10,#200;MOV R1, #100 ; y 
+stl2  		MOV R8, #200 ; radius	
+			MOV R5, #1800;MOV R0, #100 ; x 
+			MOV R10,#2800;MOV R1, #100 ; y 
 			b stl_
 
-stl1    	MOV R8, #3 ; value of radius	
-			MOV R5, #100;MOV R0, #100 ; x 
-			MOV R10,#100;MOV R1, #100 ; y 
+stl1    	MOV R8, #10 ; value of radius	
+			MOV R5, #200;MOV R0, #100 ; x 
+			MOV R10,#200;MOV R1, #100 ; y 
 		
 		
 stl_	VMOV.F32 S19,R5; ; converting x value to floating point 
@@ -46,17 +47,33 @@ stl_	VMOV.F32 S19,R5; ; converting x value to floating point
 		VMOV.F32 R0,S17
 		VMOV.F32 R1,S21
 		VMOV.F32 R2,S22
-		BL printMsg	 ;printing angle and X and Y co-ordinates.
+		BL printMsg	 ;printing angle and X and Y co-ordinates. ;;;;;;;;;;;;;;;;;;;;;;;;debugginh commented;;;;;;;;;;;;;;;;;
 		VCMP.F32 S24, S16
-		vmrs APSR_nzcv, FPSCR
-		sub r4, r4 ,#1
-		BEQ start
-		VADD.F32 S24, S15, S24
-		ADD R8, R8, #1
+		vmrs APSR_nzcv, FPSCR ; ASA theta becomes 360 we jump to spiral and make theta equals to 0.
+		
+		;sub r4, r4 ,#1 ;;;;;;;;;;;;;;debugggig;;;;;;;;;;;;;
+		BEQ spirl ;;;;;;;;;;;;;;;;;;;;;;;;start to stop ;;;;;;;;;;; debugginh;;;;;;;;;;;;;;; ;;;;;stop to spirl;;;;;;;
+addl	VADD.F32 S24, S15, S24
+		B inc_dec
+		;ADD R8, R8, #1
 		B stl_
+		
+spirl  	 cmp r11, #4 ; number of encirclement you want 
+		 beq start 
+		 
+		 ADD R11,R11,#1
+		 VLDR.F32 S24, = 0
+		 b addl
+
+inc_dec  cmp r4, #2 
+		 ITE EQ
+		 ADDEQ R8, R8, #3
+		 SUBNE R8, R8, #1
+		 B stl_
+		
 stop    B stop;  goto stop
 
-sub1    MOV R0,#100 ; n
+sub1    MOV R0,#100; n ;;;;;;;;;;;;;;;;;;;;100 -------2 debugging -----------
         MOV R1,#1; i
         VLDR.F32 S0,=1;
         VLDR.F32 S1,=1;Temp 
@@ -72,8 +89,8 @@ itera   CMP R1,R0;Compare 'i' and 'n'
 		BX lr ; else return from subroutine	
 
 
-si_co  	VMOV.F32 S3,R1; converting i to floating point 
-        VCVT.F32.U32 S3,S3; converting to unsigned floating number 32-bit
+si_co  	VMOV.F32 S3,R1 ;converting i to floating point 
+        VCVT.F32.U32 S3,S3  ;converting to unsigned floating number 32-bit
 		VNMUL.F32 S4,S2,S2; -1*x*x
 		MOV R9,#2
 		MUL R2,R1,R9; 2i
